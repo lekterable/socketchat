@@ -1,0 +1,17 @@
+{
+  "name": "mongochat",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app"
+  },
+  "author": "Kornel Dubieniecki",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.15.4",
+    "mongodb": "^2.2.31",
+    "path": "^0.12.7",
+    "socket.io": "^2.0.3"
+  }
+}

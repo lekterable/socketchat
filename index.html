@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Socket.IO Chat</title>
+    <link rel="stylesheet" href="./style.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+  </head>
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class="col-md-6 offset-md-3 col-sm-12">
+          <h1 class="text-center">
+            Socket.IO Chat
+            <button id="clear" class="btn btn-danger">Wyczyść</button>
+          </h1>
+          <div id="info" ></div>
+          <div id="chat">
+            <input type="text" id="username" class="form-control" placeholder="Twoje imie">
+            <br>
+            <div class="card">
+              <div id="messages" class="card-block">
+
+              </div>
+            </div>
+            <br>
+            <textarea id="textarea" class="form-control" placeholder="Wprowadź wiadomość"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
+    <script>
+      (function() {
+        let socket = io()
+        let element = (arg)=>{return document.getElementById(arg)}
+        element('textarea').addEventListener('keydown', (key)=>{
+          if(key.which === 13 && key.shiftKey == false)  {
+            socket.emit('new message', [{
+              name: element('username').value,
+              data: element('textarea').value}])
+            element('textarea').value = ''
+            key.preventDefault()
+          }
+        })
+
+        let infoDefault = element('info').textContent
+        let setInfo = (msg, type)=>{
+          info.textContent = msg
+          info.className = type
+          if(msg != infoDefault)  {
+            let delay = setTimeout(()=>{
+              setInfo(infoDefault, '')
+            }, 4000)
+          }
+        }
+
+        socket.on('info', (data)=>{
+          setInfo(data.message, data.type)
+        })
+
+        socket.on('chat message', (data)=>{
+          if(data.length){
+            for (let i = 0; i < data.length; i++) {
+              let message = document.createElement('div')
+              message.setAttribute('class', 'chat-message')
+              message.textContent = data[i].name + ": " + data[i].data
+              messages.appendChild(message)
+            }
+          }
+        })
+
+        element('clear').addEventListener('click', ()=>{
+          socket.emit('clear')
+        })
+
+        socket.on('cleared', ()=>{
+          messages.textContent = ''
+        })
+      })()
+    </script>
+  </body>
+</html>
