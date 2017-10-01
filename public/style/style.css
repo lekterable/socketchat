@@ -2,3 +2,7 @@
   height: 300px;
   overflow-y: scroll;
 }
+#users {
+  height: 446px;
+  overflow-y: scroll;
+}

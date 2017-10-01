@@ -3,28 +3,43 @@
   <head>
     <meta charset="utf-8">
     <title>Socket.IO Chat</title>
-    <link rel="stylesheet" href="./style.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+    <link rel="stylesheet" href="/style/style.css">
   </head>
   <body>
     <div class="container">
       <div class="row">
-        <div class="col-md-6 offset-md-3 col-sm-12">
+        <div class="col-md-8 offset-md-2 col-sm-12">
           <h1 class="text-center">
             Socket.IO Chat
             <button id="clear" class="btn btn-danger">Wyczyść</button>
           </h1>
           <div id="info" ></div>
           <div id="chat">
-            <input type="text" id="username" class="form-control" placeholder="Twoje imie">
-            <br>
-            <div class="card">
-              <div id="messages" class="card-block">
-
+            <div class="row">
+              <div class="col-lg-9">
+                  <div class="input-group">
+                    <input type="text" id="username" class="form-control" placeholder="Twoje imie" autofocus>
+                    <span class="input-group-btn">
+                      <button id="loginBtn" class="btn btn-primary">Zaloguj</button>
+                    </span>
+                  </div>
+                <br>
+                <div class="card">
+                  <div id="messages" class="card-block">
+                  </div>
+                </div>
+                <br>
+                <textarea id="textarea" class="form-control" placeholder="Wprowadź wiadomość"></textarea>
+              </div>
+              <div class="col-lg-3">
+                <div class="card">
+                  <div id="users" class="card-block text-center">
+                  </div>
+                </div>
               </div>
             </div>
-            <br>
-            <textarea id="textarea" class="form-control" placeholder="Wprowadź wiadomość"></textarea>
+
           </div>
         </div>
       </div>
@@ -33,40 +48,59 @@
     <script>
       (function() {
         let socket = io()
+        let logged = false
         let element = (arg)=>{return document.getElementById(arg)}
         element('textarea').addEventListener('keydown', (key)=>{
           if(key.which === 13 && key.shiftKey == false)  {
             socket.emit('new message', [{
               name: element('username').value,
-              data: element('textarea').value}])
-            element('textarea').value = ''
+              data: element('textarea').value}],(cb)=>{
+                if(cb)
+                  element('textarea').value = ''
+              })
             key.preventDefault()
           }
         })
-
+        element('loginBtn').addEventListener('click', ()=>{
+          if(element('username').value!='')
+            socket.emit('login', {username: element('username').value}, (cb)=>{
+              if(cb){
+                element('loginBtn').classList.add('disabled')
+                element('username').setAttribute('disabled', true)
+              }
+            })
+        })
         let infoDefault = element('info').textContent
         let setInfo = (msg, type)=>{
           info.textContent = msg
-          info.className = type
+          info.className = type+' text-center'
           if(msg != infoDefault)  {
             let delay = setTimeout(()=>{
               setInfo(infoDefault, '')
             }, 4000)
           }
         }
-
         socket.on('info', (data)=>{
           setInfo(data.message, data.type)
         })
-
         socket.on('chat message', (data)=>{
           if(data.length){
             for (let i = 0; i < data.length; i++) {
               let message = document.createElement('div')
               message.setAttribute('class', 'chat-message')
               message.textContent = data[i].name + ": " + data[i].data
-              messages.appendChild(message)
+              element('messages').appendChild(message)
             }
+          }
+        })
+        socket.on('users', (data)=>{
+          if(data.length){
+            let usersList = ''
+            for (let i = 0; i < data.length; i++) {
+              usersList += '<div class="chat-message">'+data[i]+'</div><hr>'
+            }
+            console.log(usersList);
+            element('users').innerHTML = usersList
           }
         })
 
@@ -75,7 +109,7 @@
         })
 
         socket.on('cleared', ()=>{
-          messages.textContent = ''
+          element('messages').textContent = ''
         })
       })()
     </script>
