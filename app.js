@@ -74,6 +74,6 @@ mongodb.connect(config.database, (err, db)=>{
   })
 })
 
-http.listen(3000, ()=>{
+http.listen(process.env.PORT || 3000, ()=>{
   console.log('Serwer uruchomiony na porcie 3000')
 })
